@@ -1,26 +1,13 @@
-import { BrowserModule, BrowserTransferStateModule } from '@angular/platform-browser';
+import { HttpClientModule } from "@angular/common/http";
 import { NgModule } from '@angular/core';
-
+import { BrowserModule, BrowserTransferStateModule } from '@angular/platform-browser';
+import { EffectsModule } from "@ngrx/effects";
+import { StoreModule } from "@ngrx/store";
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { translations, translationChunksConfig } from '@spartacus/assets';
-import { B2cStorefrontModule } from '@spartacus/storefront';
-import { OccConfig } from '@spartacus/core';
-import { environment } from './../environments/environment';
-
-const occConfig: OccConfig = { backend: { occ: {} } };
-
-// only provide the `occ.baseUrl` key if it is explicitly configured, otherwise the value of
-// <meta name="occ-backend-base-url" > is ignored.
-// This in turn breaks the call to the API aspect in public cloud environments
-if (environment.occBaseUrl) {
-  occConfig.backend.occ.baseUrl = environment.occBaseUrl;
-}
-if (environment.prefix) {
-  occConfig.backend.occ.prefix = environment.prefix;
-}
-else {
-  occConfig.backend.occ.prefix = '/occ/v2/';
-}
+import { SpartacusModule } from './spartacus/spartacus.module';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -28,21 +15,16 @@ else {
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'serverApp' }),
-    B2cStorefrontModule.withConfig({
-      backend: occConfig.backend,
-      context: {
-        urlParameters: ['baseSite', 'language', 'currency'],
-        baseSite: ['electronics-spa'],
-        currency: ['USD', 'GBP',]
-      },
-      i18n: {
-        resources: translations,
-        chunks: translationChunksConfig,
-        fallbackLang: 'en'
-      },
-      features: {
-        level: '2.0'
-      }
+    HttpClientModule,
+    AppRoutingModule,
+    StoreModule.forRoot({}),
+    EffectsModule.forRoot([]),
+    SpartacusModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the app is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
     }),
     BrowserTransferStateModule
   ],
